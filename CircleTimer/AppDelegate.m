@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 
 int iconNumber = 1;
+int timerNumber = 0;
 
 @interface AppDelegate ()
 
@@ -23,7 +24,7 @@ int iconNumber = 1;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     // Brings up the status bar icon
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    [self setStatusIcon:@"01"];
+    [self setTimerNumber];
     
     _statusItem.highlightMode = NO;
     _statusItem.toolTip = @"Option+Click to reset\nControl+Click to exit"; // Add in text for resetting
@@ -43,8 +44,9 @@ int iconNumber = 1;
         // Command click resets the app
         [self stopTimer];
         iconNumber = 1;
+        timerNumber = 0;
         [self setStatusIcon:@"05"];
-        [self performSelector:@selector(setStatusIcon:) withObject:@"01" afterDelay:0.16 ];
+        [self performSelector:@selector(setStatusIcon:) withObject:@"01_0" afterDelay:0.16 ];
     } else if (!_timer.isValid) {
     
 
@@ -131,6 +133,12 @@ int iconNumber = 1;
         case 8:
             iconNumber = 1;
             [self setStatusIcon:@"01"];
+            // Increment the number of timers that have occurred
+            if (timerNumber == 9){
+                timerNumber = 0;
+            } else {
+                timerNumber++;
+            }
             // The second timer is complete, turning it off
             [self stopTimer];
             break;
@@ -144,12 +152,50 @@ int iconNumber = 1;
     _timer = nil;
     [self playCompleteSound];
     
-    [self performSelector:@selector(playCompleteSound) withObject:nil afterDelay:1.5 ];
-    [self performSelector:@selector(playCompleteSound) withObject:nil afterDelay:3 ];
+    [self performSelector:@selector(playCompleteSound) withObject:nil afterDelay:1.6 ];
+    [self performSelector:@selector(playCompleteSound) withObject:nil afterDelay:3.2 ];
+    
+    // Change the icon to show the number of timers completed
+    [self performSelector:@selector(setTimerNumber) withObject:nil afterDelay:1.6 ];
+
 
 }
 - (void)playCompleteSound {
     [[NSSound soundNamed:@"Blow"] play];
+}
+- (void)setTimerNumber {
+    if (iconNumber == 1) {
+        // Concatenates the string pointing to the correct image
+        NSString *combinedImageNumber;
+        NSString *timerNumberAsString;
+        timerNumberAsString = [[NSNumber numberWithInt:timerNumber] stringValue];
+
+        combinedImageNumber = [NSString stringWithFormat:@"01_%@", timerNumberAsString];
+        
+        [self setStatusIcon:combinedImageNumber];
+    } else if (iconNumber == 5) {
+        // put code in here for the filled icon with numbers
+    }
+    
+}
+
+-(CGImageRef)numberCircle {
+    NSImage *background = [NSImage imageNamed:@"background"];
+    NSImage *overlay = [NSImage imageNamed:@"overlay"];
+    
+    NSImage *newImage = [[NSImage alloc] initWithSize:[background size]];
+    [newImage lockFocus];
+    
+    CGRect newImageRect = CGRectZero;
+    newImageRect.size = [newImage size];
+    
+    [background drawInRect:newImageRect];
+    [overlay drawInRect:newImageRect];
+    
+    [newImage unlockFocus];
+    
+    CGImageRef newImageRef = [newImage CGImageForProposedRect:NULL context:nil hints:nil];
+    return newImageRef;
 }
 
 
